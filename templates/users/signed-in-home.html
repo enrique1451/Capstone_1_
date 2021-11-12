@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+
+<div id=diets-div>
+    <h2>USER SELECTED DIETS</h2>
+    <ul class="list-group" id="chosen_diets">
+        {% for dts in chosen_diets %}
+        <li class="list-group-item">
+            {{ g.user.chosen_diets }}
+        </li>
+        {% endfor %}
+    </ul>
+    <H3>Available User Diets</H3>
+    <ul class="list-group" id="available_diets">
+        {% for adts in available_diets %}
+        <li class="list-group-item">
+            {{ available_diets }}
+        </li>
+        {% endfor %}
+    </ul>
+
+</div>
+
+<div>
+    <form method="POST">
+        <h4>Enter Recipe</h4>
+        {% for field in form %}
+            {{ field(placeholder=field.label.text, class="form-control") }}
+        {% endfor %}
+        
+
+
+
+        <button class="btn btn-primary btn-lg btn-block">Analize</button>
+
+    </form>
+
+</div>
+
+
+{% endblock %}
+
+
+
+
+

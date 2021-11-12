@@ -17,27 +17,13 @@ class User(db.Model):
 
     __tablename__ = "user"
 
-    email = db.Column(
-        db.Text,
-        nullable=False,
-        unique=True,
-        primary_key=True
-    )
+    email = db.Column(db.Text, nullable=False, unique=True, primary_key=True)
 
-    password = db.Column(
-            db.Text,
-            nullable=False,
-    )
+    password = db.Column(db.Text, nullable=False,)
 
-    username = db.Column(
-        db.Text,
-        nullable=False,
-        unique=True,
-    )
+    username = db.Column(db.Text, nullable=False, unique=True,)
 
-
-    diet = db.relationship(
-        "User", secondary="user_and_diet", backref="users")
+    userdiet = db.relationship("UserDiet")
 
 
 
@@ -47,7 +33,7 @@ class User(db.Model):
 
 
     @classmethod
-    def signup(cls, email, password):
+    def signup(cls, email, password, username):
         """Sign up user.
 
         Hashes password and adds user to system.
@@ -58,6 +44,7 @@ class User(db.Model):
         user = User(
             email=email,
             password=hashed_pwd,
+            username=username
             )
 
         db.session.add(user)
@@ -83,50 +70,43 @@ class User(db.Model):
 
 
 
-class UserDiet(db.Model):
-    """Mapping diets to users."""
-
-    __tablename__ = "user_and_diet" 
-
-
-    user_email = db.Column(
-        db.Text,
-        db.ForeignKey("user.email", ondelete="CASCADE"),
-        nullable=False, primary_key=True
-    )
-
-    diet_id = db.Column(
-        db.Integer,
-        db.ForeignKey("diet.id", ondelete="CASCADE"),
-        nullable=False, primary_key=True
-    )
-
-
-
 class Diet(db.Model):
     """Database table for diets for the user to select."""
 
     __tablename__ = "diet"
 
-    id = db.Column(
-        db.Integer,
-        primary_key=True, autoincrement=True
-    )
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
 
-    diet_name = db.Column(
-        db.String(140),
-        nullable=False,
-        unique=True
-    )
+    name = db.Column(db.String(140), nullable=False, unique=True)
+
+    description = db.Column(db.Text, nullable=True, unique=True)
+
+    user = db.relationship("User",secondary="userdiet", backref="diet", lazy="joined")
+
+    userdiet = db.relationship("UserDiet")
+
+      
+
+    def __repr__(self):
+        return "Diet(%r, %r)" % (self.name, self.description)
 
 
-    user_email = db.Column(
-        db.Text,
-        db.ForeignKey("user.email", ondelete="CASCADE"),
-        nullable=True,
-    )
+class UserDiet(db.Model):
+    """Mapping users to diets."""
 
-    user = db.relationship(
-        "User", secondary="user_and_diet", backref="diet")
+    __tablename__ = "userdiet" 
+    
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
 
+    user_email = db.Column("user_email", db.ForeignKey("user.email"), primary_key=True)
+    
+    diet_id = db.Column("diet_id", db.ForeignKey("diet.id"), primary_key=True)
+
+    def __repr__(self):
+        return f'<UserDiet = user_email:{self.user_email} diet_id:{self.diet_id}>'
+
+
+
+
+    
 

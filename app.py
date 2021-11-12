@@ -3,6 +3,7 @@ import os
 from flask import Flask, render_template, request, flash, redirect, session, g
 from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
+from forms import UserAddForm, LoginForm, RecipeForm
 
 # from forms import UserAddForm, LoginForm, MessageForm, UserEditForm
 
@@ -49,7 +50,7 @@ def add_user_to_g():
 def do_login(user):
     """Log in user."""
 
-    session[CURR_USER_KEY] = user.id
+    session[CURR_USER_KEY] = user.email
 
 
 def do_logout():
@@ -59,7 +60,7 @@ def do_logout():
         del session[CURR_USER_KEY]
 
 
-@app.route('/signup', methods=["GET", "POST"])
+@app.route('/', methods=["GET", "POST"])
 def signup():
     """username user signup.
 
@@ -84,14 +85,14 @@ def signup():
 
         except IntegrityError:
             flash("e-mail already exists in our database. If password has been forgotten, please request a password reset", 'danger')
-            return render_template('users/index.html', form=form)
+            return render_template('users/signup.html', form=form)
 
         do_login(user)
 
-        return redirect("/")
+        return redirect(f"/home/{g.user.email}")
 
     else:
-        return render_template('users/index.html', form=form)
+        return render_template('users/signup.html', form=form)
 
 
 @app.route('/login', methods=["GET", "POST"])
@@ -107,11 +108,11 @@ def login():
         if user:
             do_login(user)
             flash(f"Hello, {user.username}!", "success")
-            return redirect("/")
+            return redirect(f"/home/{g.user.email}")
 
         flash("Invalid email/password combination. Try Again", 'danger')
 
-    return render_template('users/index.html', form=form)
+    return render_template('users/signup.html', form=form)
 
 
 @app.route('/logout')
@@ -127,72 +128,84 @@ def logout():
 # General user routes:
 
 
-@app.route('/users/<int:user_email>')
-def users_show(user_email):
-    """Show user profile."""
+@app.route('/home/<string:user_email>', methods=['GET'])
+def user_home(user_email):
+    """Show user homepage."""
+
+    form = RecipeForm()
 
     user = User.query.get_or_404(user_email)
 
     # Getting user's diets from database
-    diets = (Diets
+    chosen_diets = (Diet
                 .query
-                .filter(Diet.user_email == user_email)
-                .limit(100)
+                .filter(UserDiet.user_email == user_email)
                 .all())
 
+    available_diets = Diet.query.all()
 
-    return render_template('users/show.html', user=user)
-
-
-
-@app.route('/users/delete', methods=["POST"])
-def delete_user():
-    """Delete user."""
-
-    if not g.user:
-        flash("Access unauthorized.", "danger")
-        return redirect("/")
-
-    do_logout()
-
-    db.session.delete(g.user)
-    db.session.commit()
-
-    return redirect("/signup")
+    
 
 
-@app.route('/')
-def homepage():
-    """Show homepage:
+    return render_template('users/signed-in-home.html', user=user, chosen_diets=chosen_diets, avaliable=available_diets, form=form)
 
-    - anon users: just login or signup options
-    - logged in: homepage for particular user
-    """
 
-    if g.user:
+@app.route('/home/<string:user_email>', methods=['POST'])
+def recipe(user_email):
+    """Receives text from the recipe field in the HTML file"""
 
-        # cur_user_is_following_ids = [fol.id for fol in g.user.following] + [g.user.id]
+    recipe = dict()
+    recipe_list = list(recipe)
+    form = RecipeForm(request.form)
+
+    if form.validate_on_submit() and request.method == "POST":
+        
+        try:
+            recipe = dict()
+            recipe_list = list(recipe)
+            
+            title = form.title.data 
+            servings= form.servings.data
+            ingredients= form.ingredients.data
+            instructions= form.instructions.data
+
+            recipe["title"] = title
+            recipe["servings"] = servings
+            recipe["ingredients"] = ingredients
+            recipe["instuctions"] = instructions
+
+            print(recipe)
+            
+        except IntegrityError:
+            flash("e-mail already exists in our database. If password has been forgotten, please request a password reset", 'danger')
+            print("satan took over the computer")
+            return redirect(f'/home/{user_email}')
+
+
+
+    print("COULD NOT VALIDATE", form.validate_on_submit(), request.method)
+    return redirect(f'/home/{user_email}')
+
+        
+
+
+
+
+
+
+
+
 
             
-        messages = (Message
-                    .query
-                    .filter(Message.user_id.in_(cur_user_is_following_ids))
-                    .order_by(Message.timestamp.desc())
-                    .limit(100)
-                    .all())
-
-        print(messages)
-
-
-        
-          
 
         
 
-        return render_template('home.html', messages=messages)
 
-    else:
-        return render_template('home-anon.html')
+
+    
+
+
+
 
 
 
