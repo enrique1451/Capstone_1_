@@ -4,6 +4,7 @@
     "name": "Low FODMAP",
     "description": "FODMAP stands for \"fermentable oligo-, di-, mono-saccharides and polyols\". Our ontology knows which foods are considered high in these types of carbohydrates (e.g. legumes, wheat, and dairy products)\n\n"
   },
+  
   {
     "id": 9,
     "name": "Primal",

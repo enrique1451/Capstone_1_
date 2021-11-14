@@ -1,4 +1,4 @@
-import os
+import os, json
 
 from flask import Flask, render_template, request, flash, redirect, session, g
 from flask_debugtoolbar import DebugToolbarExtension
@@ -13,6 +13,13 @@ from secrets import apiKey
 CURR_USER_KEY = "curr_user"
 
 app = Flask(__name__)
+
+
+# 1 lb spaghetti,
+# 3.5 oz pancetta,
+# 2 Tbsps olive oil,
+# 1  egg,
+# 0.5 cup parmesan cheese
 
 
 
@@ -50,7 +57,7 @@ def add_user_to_g():
 def do_login(user):
     """Log in user."""
 
-    session[CURR_USER_KEY] = user.email
+    session[CURR_USER_KEY] = user.id
 
 
 def do_logout():
@@ -58,6 +65,7 @@ def do_logout():
 
     if CURR_USER_KEY in session:
         del session[CURR_USER_KEY]
+
 
 
 @app.route('/', methods=["GET", "POST"])
@@ -79,8 +87,8 @@ def signup():
             user = User.signup(
                 email=form.email.data,
                 password=form.password.data,
-                username = form.username.data,
-            )
+                username = form.username.data
+               )
             db.session.commit()
 
         except IntegrityError:
@@ -89,7 +97,7 @@ def signup():
 
         do_login(user)
 
-        return redirect(f"/home/{g.user.email}")
+        return redirect(f"/home/{g.user.id}")
 
     else:
         return render_template('users/signup.html', form=form)
@@ -108,7 +116,7 @@ def login():
         if user:
             do_login(user)
             flash(f"Hello, {user.username}!", "success")
-            return redirect(f"/home/{g.user.email}")
+            return redirect(f"/home/{g.user.id}")
 
         flash("Invalid email/password combination. Try Again", 'danger')
 
@@ -128,63 +136,62 @@ def logout():
 # General user routes:
 
 
-@app.route('/home/<string:user_email>', methods=['GET'])
-def user_home(user_email):
+@app.route('/home/<int:user_id>', methods=['GET'])
+def user_home(user_id):
     """Show user homepage."""
 
     form = RecipeForm()
 
-    user = User.query.get_or_404(user_email)
+    user = User.query.get_or_404(user_id)
 
     # Getting user's diets from database
     chosen_diets = (Diet
                 .query
-                .filter(UserDiet.user_email == user_email)
+                .filter(UserDiet.user_id == user_id)
                 .all())
 
     available_diets = Diet.query.all()
+    print(available_diets)
 
     
 
 
-    return render_template('users/signed-in-home.html', user=user, chosen_diets=chosen_diets, avaliable=available_diets, form=form)
+    return render_template('users/signed-in-home.html', user=user, chosen_diets=chosen_diets, available_diets=available_diets, form=form)
 
 
-@app.route('/home/<string:user_email>', methods=['POST'])
-def recipe(user_email):
+@app.route('/home/<int:user_id>', methods=['POST'])
+def recipe(user_id):
     """Receives text from the recipe field in the HTML file"""
 
     recipe = dict()
-    recipe_list = list(recipe)
+    ingredients_list = list()
     form = RecipeForm(request.form)
 
     if form.validate_on_submit() and request.method == "POST":
         
         try:
-            recipe = dict()
-            recipe_list = list(recipe)
+            ingredients = form.ingredients.data 
+            ingredients_list.append(ingredients)
             
-            title = form.title.data 
-            servings= form.servings.data
-            ingredients= form.ingredients.data
-            instructions= form.instructions.data
+            recipe["title"] = form.title.data 
+            recipe["servings"] = form.servings.data
+            recipe["ingredients"] = ingredients_list
+            recipe["instuctions"] = form.instructions.data
 
-            recipe["title"] = title
-            recipe["servings"] = servings
-            recipe["ingredients"] = ingredients
-            recipe["instuctions"] = instructions
+            userdiet = UserDiet.createUserDiet(user_id, userdiet)
 
-            print(recipe)
+            db.session.commit()
+
+            print([recipe])
             
         except IntegrityError:
-            flash("e-mail already exists in our database. If password has been forgotten, please request a password reset", 'danger')
-            print("satan took over the computer")
-            return redirect(f'/home/{user_email}')
+            flash("satan took over the computer. Call a Priest", 'danger')
+            return redirect(f'/home/{user_id}')
 
 
 
-    print("COULD NOT VALIDATE", form.validate_on_submit(), request.method)
-    return redirect(f'/home/{user_email}')
+    print(f"Validated:{form.validate_on_submit()}", request.method)
+    return redirect(f'/home/{user_id}')
 
         
 

@@ -17,7 +17,9 @@ class User(db.Model):
 
     __tablename__ = "user"
 
-    email = db.Column(db.Text, nullable=False, unique=True, primary_key=True)
+    id  = db.Column(db.Integer, primary_key=True, autoincrement=True)
+
+    email = db.Column(db.Text, nullable=False, unique=True)
 
     password = db.Column(db.Text, nullable=False,)
 
@@ -98,12 +100,25 @@ class UserDiet(db.Model):
     
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
 
-    user_email = db.Column("user_email", db.ForeignKey("user.email"), primary_key=True)
+    user_id = db.Column("user_id", db.ForeignKey("user.id"), primary_key=True)
     
     diet_id = db.Column("diet_id", db.ForeignKey("diet.id"), primary_key=True)
 
     def __repr__(self):
-        return f'<UserDiet = user_email:{self.user_email} diet_id:{self.diet_id}>'
+        return f'<UserDiet = user_id:{self.user_id} diet_id:{self.diet_id}>'
+
+
+    @classmethod
+    def createUserDiet(cls, userid, dietid):
+        """Links a selected diet to the user in the Database"""
+
+        userDiet = UserDiet(
+            user_id = userid,
+            diet_id = dietid
+            )
+
+        db.session.add(userDiet)
+        return UserDiet
 
 
 
