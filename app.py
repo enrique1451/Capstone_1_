@@ -1,4 +1,4 @@
-import os, json
+import os
 
 from flask import Flask, render_template, request, flash, redirect, session, g
 from flask_debugtoolbar import DebugToolbarExtension
@@ -67,28 +67,32 @@ def do_logout():
         del session[CURR_USER_KEY]
 
 
-
 @app.route('/', methods=["GET", "POST"])
 def signup():
+
     """username user signup.
-
     Create new user and add to DB. Redirect to home page.
-
     If form not valid, present form.
-
     If the there already is a user with that username: flash message
     and re-present form.
     """
 
     form = UserAddForm()
+    # Grabs diets from Nutree Database and render them dynamically in the Jinja template
+    # form.select_diets = [(d.id, d.name)for d in Diet.query.all()]
+    # form_select = form.select_diets
+    # print(form_select)
+    # print(type(form_select))
 
-    if form.validate_on_submit():
+    if form.validate_on_submit() and request.POST:
         try:
             user = User.signup(
                 email=form.email.data,
                 password=form.password.data,
-                username = form.username.data
+                username = form.username.data,
+                               
                )
+              
             db.session.commit()
 
         except IntegrityError:
@@ -100,6 +104,8 @@ def signup():
         return redirect(f"/home/{g.user.id}")
 
     else:
+
+        print(form)        
         return render_template('users/signup.html', form=form)
 
 
@@ -141,7 +147,6 @@ def user_home(user_id):
     """Show user homepage."""
 
     form = RecipeForm()
-
     user = User.query.get_or_404(user_id)
 
     # Getting user's diets from database
@@ -151,10 +156,6 @@ def user_home(user_id):
                 .all())
 
     available_diets = Diet.query.all()
-    print(available_diets)
-
-    
-
 
     return render_template('users/signed-in-home.html', user=user, chosen_diets=chosen_diets, available_diets=available_diets, form=form)
 
@@ -167,60 +168,34 @@ def recipe(user_id):
     ingredients_list = list()
     form = RecipeForm(request.form)
 
-    if form.validate_on_submit() and request.method == "POST":
-        
-        try:
-            ingredients = form.ingredients.data 
-            ingredients_list.append(ingredients)
+    if user_id == g.user.id:
+
+
+        if form.validate_on_submit() and request.method == "POST":
             
-            recipe["title"] = form.title.data 
-            recipe["servings"] = form.servings.data
-            recipe["ingredients"] = ingredients_list
-            recipe["instuctions"] = form.instructions.data
+            try:
+                ingredients = form.ingredients.data 
+                ingredients_list.append(ingredients)
+                
+                recipe["title"] = form.title.data 
+                recipe["servings"] = form.servings.data
+                recipe["ingredients"] = ingredients_list
+                recipe["instuctions"] = form.instructions.data
 
-            userdiet = UserDiet.createUserDiet(user_id, userdiet)
+                userdiet = UserDiet.linkUserDiet(g.user.id, userdiet)
 
-            db.session.commit()
+                db.session.commit()
 
-            print([recipe])
-            
-        except IntegrityError:
-            flash("satan took over the computer. Call a Priest", 'danger')
-            return redirect(f'/home/{user_id}')
+                print([recipe])
+                
+            except IntegrityError:
+                flash("satan took over the computer. Call a Priest", 'danger')
+                return redirect(f'/home/{user_id}')
 
 
 
     print(f"Validated:{form.validate_on_submit()}", request.method)
     return redirect(f'/home/{user_id}')
-
-        
-
-
-
-
-
-
-
-
-
-            
-
-        
-
-
-
-    
-
-
-
-
-
-
-
-
-
-
-
 
 ##############################################################################
 

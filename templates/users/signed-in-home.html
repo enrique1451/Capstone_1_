@@ -4,7 +4,7 @@
 {% block content %}
 
 <div id=diets-div>
-    <h2>USER SELECTED DIETS</h2>
+    <h2>User Selected Diets</h2>
     <ul class="list-group" id="chosen_diets">
         {% for dts in chosen_diets %}
         <li class="list-group-item">
@@ -16,7 +16,7 @@
     <ul class="list-group" id="available_diets">
         {% for adts in available_diets %}
         <li class="list-group-item">
-            {{ adts }}
+            <b>{{ adts.name }}</b> : {{adts.description}}
         </li>
         {% endfor %}
     </ul>
@@ -29,10 +29,6 @@
         {% for field in form %}
             {{ field(placeholder=field.label.text, class="form-control") }}
         {% endfor %}
-        
-
-
-
         <button class="btn btn-primary btn-lg btn-block">Analyze</button>
 
     </form>

@@ -93,6 +93,8 @@ class Diet(db.Model):
         return "Diet(%r, %r)" % (self.name, self.description)
 
 
+
+
 class UserDiet(db.Model):
     """Mapping users to diets."""
 
@@ -109,10 +111,11 @@ class UserDiet(db.Model):
 
 
     @classmethod
-    def createUserDiet(cls, userid, dietid):
+    def linkUserDiet(cls, userid, dietid):
         """Links a selected diet to the user in the Database"""
 
         userDiet = UserDiet(
+            
             user_id = userid,
             diet_id = dietid
             )
