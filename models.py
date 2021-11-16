@@ -31,7 +31,7 @@ class User(db.Model):
 
 
     def __repr__(self):
-        return f"<User #{self.username}: {self.email}>"
+        return f"<User #{self.id}: {self.username}: {self.email}>"
 
 
     @classmethod
@@ -46,7 +46,8 @@ class User(db.Model):
         user = User(
             email=email,
             password=hashed_pwd,
-            username=username
+            username=username,
+            
             )
 
         db.session.add(user)
@@ -90,8 +91,7 @@ class Diet(db.Model):
       
 
     def __repr__(self):
-        return "Diet(%r, %r)" % (self.name, self.description)
-
+        return f"<Diet #{self.id}:{self.name}: {self.description}>"
 
 
 

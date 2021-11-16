@@ -1,16 +1,15 @@
-import os
+import os, json
 
 from flask import Flask, render_template, request, flash, redirect, session, g
 from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
 from forms import UserAddForm, LoginForm, RecipeForm
 
-# from forms import UserAddForm, LoginForm, MessageForm, UserEditForm
 
 from models import db, connect_db, User, Diet, UserDiet
 from secrets import apiKey
 
-CURR_USER_KEY = "curr_user"
+CURR_USER_KEY = "user_id"
 
 app = Flask(__name__)
 
@@ -67,7 +66,15 @@ def do_logout():
         del session[CURR_USER_KEY]
 
 
-@app.route('/', methods=["GET", "POST"])
+@app.route('/')
+def index():
+    if g.user:
+        return redirect(f'/users/{g.user}')
+    return redirect('/login')
+
+
+
+@app.route('/signup', methods=["GET", "POST"])
 def signup():
 
     """username user signup.
@@ -76,36 +83,36 @@ def signup():
     If the there already is a user with that username: flash message
     and re-present form.
     """
-
     form = UserAddForm()
     # Grabs diets from Nutree Database and render them dynamically in the Jinja template
-    # form.select_diets = [(d.id, d.name)for d in Diet.query.all()]
-    # form_select = form.select_diets
-    # print(form_select)
-    # print(type(form_select))
+    # def diets_in_list():
+        
+    #     [(d.id, d.name)for d in Diet.query.all()]
+    #     diet_list.append(d)
+    #     print(diet_list)
+    
+        
 
-    if form.validate_on_submit() and request.POST:
+    if form.validate_on_submit() and request.method == "POST":
         try:
             user = User.signup(
                 email=form.email.data,
                 password=form.password.data,
-                username = form.username.data,
-                               
+                username = form.username.data,                                 
                )
-              
             db.session.commit()
+
+          
+            
 
         except IntegrityError:
             flash("e-mail already exists in our database. If password has been forgotten, please request a password reset", 'danger')
             return render_template('users/signup.html', form=form)
 
         do_login(user)
-
-        return redirect(f"/home/{g.user.id}")
+        return redirect(f"/users/{user.id}")
 
     else:
-
-        print(form)        
         return render_template('users/signup.html', form=form)
 
 
@@ -122,7 +129,7 @@ def login():
         if user:
             do_login(user)
             flash(f"Hello, {user.username}!", "success")
-            return redirect(f"/home/{g.user.id}")
+            return redirect(f"/users/{user.id}")
 
         flash("Invalid email/password combination. Try Again", 'danger')
 
@@ -142,9 +149,12 @@ def logout():
 # General user routes:
 
 
-@app.route('/home/<int:user_id>', methods=['GET'])
+@app.route('/users/<int:user_id>', methods=['GET'])
 def user_home(user_id):
     """Show user homepage."""
+    if not g.user:
+        flash("Session Expired. Log In to your Account Again", "danger")
+        return redirect("/login")
 
     form = RecipeForm()
     user = User.query.get_or_404(user_id)
@@ -157,45 +167,46 @@ def user_home(user_id):
 
     available_diets = Diet.query.all()
 
-    return render_template('users/signed-in-home.html', user=user, chosen_diets=chosen_diets, available_diets=available_diets, form=form)
+    return render_template('users/user_home.html', user=user, chosen_diets=chosen_diets, available_diets=available_diets, form=form)
 
 
-@app.route('/home/<int:user_id>', methods=['POST'])
-def recipe(user_id):
+@app.route('/users/recipe', methods=['POST'])
+def recipe():
     """Receives text from the recipe field in the HTML file"""
+    
 
     recipe = dict()
-    ingredients_list = list()
     form = RecipeForm(request.form)
 
-    if user_id == g.user.id:
+    if not g.user:
+        flash("Session Expired. Log In to your Account Again", "danger")
+        return redirect("/login")
 
 
-        if form.validate_on_submit() and request.method == "POST":
-            
-            try:
-                ingredients = form.ingredients.data 
-                ingredients_list.append(ingredients)
+
+    if form.validate_on_submit() and request.method == "POST":
+
+        # Data posted from the recipe forms is received   
+        
+        recipe["title"] = form.title.data 
+        recipe["servings"] = form.servings.data
+        ingredients = [i.lstrip() for i in (",".join([form.ingredients.data]).split(","))]
+        recipe["ingredients"] = ingredients
+        recipe["instructions"] = form.instructions.data
+        
+
+        # userdiet = UserDiet.linkUserDiet(g.user.id, UserDiet.diet_id )
+        # db.session.commit()
+        
+        # Converts data into json, so it can be submitted to the API. 
+        request_data = json.dumps([recipe], indent=1)
+
+
+        print(request_data)
                 
-                recipe["title"] = form.title.data 
-                recipe["servings"] = form.servings.data
-                recipe["ingredients"] = ingredients_list
-                recipe["instuctions"] = form.instructions.data
-
-                userdiet = UserDiet.linkUserDiet(g.user.id, userdiet)
-
-                db.session.commit()
-
-                print([recipe])
-                
-            except IntegrityError:
-                flash("satan took over the computer. Call a Priest", 'danger')
-                return redirect(f'/home/{user_id}')
-
-
 
     print(f"Validated:{form.validate_on_submit()}", request.method)
-    return redirect(f'/home/{user_id}')
+    return redirect(f'/users/{g.user.id}')
 
 ##############################################################################
 

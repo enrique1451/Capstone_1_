@@ -11,7 +11,7 @@ class UserAddForm(FlaskForm):
     email = StringField('E-mail', validators=[DataRequired(), Email()])
     password = PasswordField('Password', validators=[Length(min=6)])
     username = StringField('Username', validators=[DataRequired()])
-    diet = QuerySelectField(query_factory=lambda:Diet.query.all())
+    # diet = QuerySelectField(query_factory=lambda:Diet.query.all())
 
 
 class LoginForm(FlaskForm):
