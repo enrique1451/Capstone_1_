@@ -1,4 +1,4 @@
-import os, json
+import os, json, requests
 
 from flask import Flask, render_template, request, flash, redirect, session, g
 from flask_debugtoolbar import DebugToolbarExtension
@@ -7,18 +7,13 @@ from forms import UserAddForm, LoginForm, RecipeForm
 
 
 from models import db, connect_db, User, Diet, UserDiet
-from secrets import apiKey
+from secrets import API_KEY
 
 CURR_USER_KEY = "user_id"
 
 app = Flask(__name__)
 
 
-# 1 lb spaghetti,
-# 3.5 oz pancetta,
-# 2 Tbsps olive oil,
-# 1  egg,
-# 0.5 cup parmesan cheese
 
 
 
@@ -33,7 +28,7 @@ app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = True
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', "i'll never tell")
 toolbar = DebugToolbarExtension(app)
 
-BASE_URL = "https://api.spoonacular.com/"
+BASE_URL = "https://api.spoonacular.com"
 
 connect_db(app)
 
@@ -69,7 +64,7 @@ def do_logout():
 @app.route('/')
 def index():
     if g.user:
-        return redirect(f'/users/{g.user}')
+        return redirect(f'/users/{g.user.id}')
     return redirect('/login')
 
 
@@ -173,8 +168,6 @@ def user_home(user_id):
 @app.route('/users/recipe', methods=['POST'])
 def recipe():
     """Receives text from the recipe field in the HTML file"""
-    
-
     recipe = dict()
     form = RecipeForm(request.form)
 
@@ -183,11 +176,9 @@ def recipe():
         return redirect("/login")
 
 
-
     if form.validate_on_submit() and request.method == "POST":
 
         # Data posted from the recipe forms is received   
-        
         recipe["title"] = form.title.data 
         recipe["servings"] = form.servings.data
         ingredients = [i.lstrip() for i in (",".join([form.ingredients.data]).split(","))]
@@ -199,14 +190,33 @@ def recipe():
         # db.session.commit()
         
         # Converts data into json, so it can be submitted to the API. 
-        request_data = json.dumps([recipe], indent=1)
+        # json_data = json.dumps(recipe, indent=1)
+        recipe = str(recipe)
+
+        response = requests.post(f"{BASE_URL}/recipes/analyze",
+         params={"apiKey": API_KEY, "language":"en", "includeNutrition": True},
+         headers={"Content-Type": "text/plain"},
+         data=recipe)
+        print("Status Code", response.status_code)
+        print(response.text)
+        print(type(recipe), recipe)
 
 
-        print(request_data)
+
+
                 
-
     print(f"Validated:{form.validate_on_submit()}", request.method)
     return redirect(f'/users/{g.user.id}')
+
+# 1 lb spaghetti,
+# 3.5 oz pancetta,
+# 2 Tbsps olive oil,
+# 1  egg,
+# 0.5 cup parmesan cheese
+
+# "instructions": "Bring a large pot of water to a boil and season generously with salt. Add the pasta to the water once boiling and cook until al dente. Reserve 2 cups of cooking water and drain the pasta. "
+
+
 
 ##############################################################################
 
