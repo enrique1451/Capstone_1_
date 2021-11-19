@@ -8,18 +8,18 @@
     <ul class="list-group" id="chosen_diets">
         {% for dts in chosen_diets %}
         <li class="list-group-item">
-            {{ g.user.chosen_diets }}
+            {{ dts.name }}
         </li>
         {% endfor %}
     </ul>
-    <H3>Available User Diets</H3>
+    <!-- <H3>Available User Diets</H3>
     <ul class="list-group" id="available_diets">
         {% for adts in available_diets %}
         <li class="list-group-item">
             <b>{{ adts.name }}</b> : {{adts.description}}
         </li>
         {% endfor %}
-    </ul>
+    </ul> -->
 
 </div>
 

@@ -162,6 +162,7 @@ def select_diet():
     
     # available_diets = Diet.query.all()
     form = SelectDietsForm()
+    
 
     if form.validate_on_submit() and request.method == "POST":
 
@@ -177,7 +178,6 @@ def select_diet():
 
             except IntegrityError:
                 db.session.rollback()
-                return render_template('users/dietSelection', form=form)
             
     return render_template('users/dietSelection.html', form=form) 
     
@@ -210,7 +210,8 @@ def user_home(user_id):
     # Getting user's diets from database
     chosen_diets = (Diet
                 .query
-                .filter(UserDiet.user_id == user_id)
+                .join(UserDiet)
+                .filter(user_id == g.user.id)
                 .all())
 
 
@@ -230,11 +231,14 @@ def recipe():
 
     if form.validate_on_submit() and request.method == "POST":
 
-        # Data posted from the recipe forms is received   
+        # Data posted from the recipe forms is received  
         recipe["title"] = form.title.data 
         recipe["servings"] = form.servings.data
+
+        #removes undesirable symbols from items, to minimize API reading errors
         ingredients = [i.lstrip() for i in (",".join([form.ingredients.data]).split(","))]
         recipe["ingredients"] = ingredients
+
         recipe["instructions"] = form.instructions.data
         
 
