@@ -1,7 +1,7 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, TextAreaField, IntegerField, FieldList
 from wtforms.validators import DataRequired, Length, Optional, Email
-from wtforms.ext.sqlalchemy.fields import QuerySelectField
+from wtforms.ext.sqlalchemy.fields import QuerySelectField, QuerySelectMultipleField
 from models import Diet
 
 
@@ -11,7 +11,11 @@ class UserAddForm(FlaskForm):
     email = StringField('E-mail', validators=[DataRequired(), Email()])
     password = PasswordField('Password', validators=[Length(min=6)])
     username = StringField('Username', validators=[DataRequired()])
-    # diet = QuerySelectField(query_factory=lambda:Diet.query.all())
+
+class SelectDietsForm(FlaskForm):
+    """Form for selecting diets for new or existing logged in user"""
+    diets = QuerySelectMultipleField(query_factory = lambda:Diet.query.all())
+
 
 
 class LoginForm(FlaskForm):

@@ -3,7 +3,7 @@ import os, json, requests
 from flask import Flask, render_template, request, flash, redirect, session, g
 from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
-from forms import UserAddForm, LoginForm, RecipeForm
+from forms import UserAddForm, LoginForm, RecipeForm, SelectDietsForm
 
 
 from models import db, connect_db, User, Diet, UserDiet
@@ -97,15 +97,13 @@ def signup():
                )
             db.session.commit()
 
-          
-            
-
         except IntegrityError:
-            flash("e-mail already exists in our database. If password has been forgotten, please request a password reset", 'danger')
+            flash("user already exists in our database. If password has been forgotten, please request a password reset", 'danger')
             return render_template('users/signup.html', form=form)
 
         do_login(user)
-        return redirect(f"/users/{user.id}")
+
+        return redirect(f"/users/dietSelection")
 
     else:
         return render_template('users/signup.html', form=form)
@@ -113,7 +111,7 @@ def signup():
 
 @app.route('/login', methods=["GET", "POST"])
 def login():
-    """username user login."""
+    """user login."""
 
     form = LoginForm()
 
@@ -131,6 +129,61 @@ def login():
     return render_template('users/signup.html', form=form)
 
 
+
+@app.route('/delete_user', methods=["GET", "POST"])
+def delete_user():
+    """ delete user """
+    if not g.user:
+        flash("Account deletion only possible while logged-in", "danger")
+        return redirect("/login")
+
+    user = User.query.get_or_404(g.user.id)
+
+    db.session.delete(user)
+    db.session.commit()
+    session.pop(CURR_USER_KEY)
+    flash(f"{g.user.username} account has been deleted from out platform")
+    return redirect('/signup')
+
+    
+
+
+
+
+
+
+
+
+
+
+@app.route('/users/dietSelection', methods=["GET", "POST"]) 
+def select_diet():
+    """ Diets presentation and selection form for new users"""
+    
+    # available_diets = Diet.query.all()
+    form = SelectDietsForm()
+
+    if form.validate_on_submit() and request.method == "POST":
+
+            try:
+                print(form.diets.data)
+                for diet in form.diets.data:
+                                     
+                    userdiet = UserDiet.linkUserDiet(
+                        userid = g.user.id, 
+                        dietid = diet.id,
+                        )
+                    db.session.commit()
+
+            except IntegrityError:
+                db.session.rollback()
+                return render_template('users/dietSelection', form=form)
+            
+    return render_template('users/dietSelection.html', form=form) 
+    
+    
+
+
 @app.route('/logout')
 def logout():
     """username logout of user."""
@@ -141,7 +194,7 @@ def logout():
 
 
 ##############################################################################
-# General user routes:
+# General user routes: 
 
 
 @app.route('/users/<int:user_id>', methods=['GET'])
@@ -160,9 +213,8 @@ def user_home(user_id):
                 .filter(UserDiet.user_id == user_id)
                 .all())
 
-    available_diets = Diet.query.all()
 
-    return render_template('users/user_home.html', user=user, chosen_diets=chosen_diets, available_diets=available_diets, form=form)
+    return render_template('users/user_home.html', user=user, chosen_diets=chosen_diets, form=form)
 
 
 @app.route('/users/recipe', methods=['POST'])
@@ -186,33 +238,37 @@ def recipe():
         recipe["instructions"] = form.instructions.data
         
 
-        # userdiet = UserDiet.linkUserDiet(g.user.id, UserDiet.diet_id )
-        # db.session.commit()
         
-        # Converts data into json, so it can be submitted to the API. 
-        # json_data = json.dumps(recipe, indent=1)
+        # Converts data type from dict into plain text, so it can be submitted to the API. 
         recipe = str(recipe)
 
         response = requests.post(f"{BASE_URL}/recipes/analyze",
          params={"apiKey": API_KEY, "language":"en", "includeNutrition": True},
          headers={"Content-Type": "text/plain"},
          data=recipe)
+
+        print(recipe)
+
+        analyzed_recipe = json.loads(response.text)
+        
         print("Status Code", response.status_code)
-        print(response.text)
-        print(type(recipe), recipe)
+        print(analyzed_recipe, type(analyzed_recipe))
 
 
 
 
                 
-    print(f"Validated:{form.validate_on_submit()}", request.method)
+    print(f"Validated:{form.validate_on_submit()}", f"Request Method: {request.method}")
     return redirect(f'/users/{g.user.id}')
 
-# 1 lb spaghetti,
-# 3.5 oz pancetta,
-# 2 Tbsps olive oil,
-# 1  egg,
-# 0.5 cup parmesan cheese
+# 2½ tablespoons kosher salt,
+# 1 tablespoon dry mustard,
+# 1 tablespoon paprika,
+# ½ teaspoon cayenne pepper,
+# ½ teaspoon freshly ground black pepper, 
+# 8 pounds baby back pork ribs (8 racks) or St. Louis-style spareribs (4 racks),
+# Low-salt chicken broth (optional),
+# 1½ cups store-bought or homemade barbecue sauce plus more
 
 # "instructions": "Bring a large pot of water to a boil and season generously with salt. Add the pasta to the water once boiling and cook until al dente. Reserve 2 cups of cooking water and drain the pasta. "
 

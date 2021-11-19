@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+
+<div id=diets-div>
+    <form action='/users/dietSelection' method="POST">
+        <h4>Select from Diets List</h4>
+        {% for diet in form %}
+            {{ diet }}
+        {% endfor %}
+        <button class="btn btn-primary btn-lg btn-block">Analyze</button>
+
+    </form>
+   
+
+
+{% endblock %}
+
+
+
+
+

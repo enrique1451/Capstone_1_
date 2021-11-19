@@ -91,7 +91,7 @@ class Diet(db.Model):
       
 
     def __repr__(self):
-        return f"<Diet #{self.id}:{self.name}: {self.description}>"
+        return f" <Diet id:{self.id}, name:{self.name}, description: {self.description}>"
 
 
 
@@ -100,8 +100,6 @@ class UserDiet(db.Model):
 
     __tablename__ = "userdiet" 
     
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-
     user_id = db.Column("user_id", db.ForeignKey("user.id"), primary_key=True)
     
     diet_id = db.Column("diet_id", db.ForeignKey("diet.id"), primary_key=True)
