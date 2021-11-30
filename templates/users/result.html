@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+
+<div id=diets-div>
+    <h2>User Selected Diets</h2>
+    <ul class="list-group" id="chosen_diets">
+        {% for dts in chosen_diets %}
+            {% for p in recipe_non_compliant_diets %}
+                {% if dts.name != p %} 
+                <li class="list-group-item">
+                    {{ p }}
+                </li>
+                {% endif %}
+            {% endfor %}
+        {% endfor %}
+    </ul>
+
+</div>
+
+
+
+{% endblock %}
+
+
+
+
+

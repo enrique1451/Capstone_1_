@@ -148,21 +148,13 @@ def delete_user():
     
 
 
-
-
-
-
-
-
-
-
 @app.route('/users/dietSelection', methods=["GET", "POST"]) 
 def select_diet():
     """ Diets presentation and selection form for new users"""
     
     # available_diets = Diet.query.all()
     form = SelectDietsForm()
-    
+    user = g.user
 
     if form.validate_on_submit() and request.method == "POST":
 
@@ -171,7 +163,7 @@ def select_diet():
                 for diet in form.diets.data:
                                      
                     userdiet = UserDiet.linkUserDiet(
-                        userid = g.user.id, 
+                        userid = user.id, 
                         dietid = diet.id,
                         )
                     db.session.commit()
@@ -208,19 +200,16 @@ def user_home(user_id):
     user = User.query.get_or_404(user_id)
 
     # Getting user's diets from database
-    chosen_diets = (Diet
-                .query
-                .join(UserDiet)
-                .filter(user_id == g.user.id)
-                .all())
-
+    chosen_diets = (Diet.query.join(UserDiet).filter(user_id == user.id).all())
 
     return render_template('users/user_home.html', user=user, chosen_diets=chosen_diets, form=form)
 
 
-@app.route('/users/recipe', methods=['POST'])
-def recipe():
-    """Receives text from the recipe field in the HTML file"""
+@app.route('/users/recipe/<int:user_id>', methods=['POST'])
+def recipe(user_id):
+
+
+    """Receives text from the the client form"""
     recipe = dict()
     form = RecipeForm(request.form)
 
@@ -231,39 +220,65 @@ def recipe():
 
     if form.validate_on_submit() and request.method == "POST":
 
-        # Data posted from the recipe forms is received  
+    # Data posted from the recipe forms is received  
         recipe["title"] = form.title.data 
         recipe["servings"] = form.servings.data
 
-        #removes undesirable symbols from items, to minimize API reading errors
+
+    #removes undesirable symbols from form to minimize API reading errors
+       
         ingredients = [i.lstrip() for i in (",".join([form.ingredients.data]).split(","))]
         recipe["ingredients"] = ingredients
-
         recipe["instructions"] = form.instructions.data
         
-
-        
-        # Converts data type from dict into plain text, so it can be submitted to the API. 
+ 
+    # Converts data type from dict into plain text, so it can be submitted to the API. 
         recipe = str(recipe)
 
-        response = requests.post(f"{BASE_URL}/recipes/analyze",
-         params={"apiKey": API_KEY, "language":"en", "includeNutrition": True},
-         headers={"Content-Type": "text/plain"},
-         data=recipe)
 
-        print(recipe)
+    #contact API and sends POST request to parse and analyze ingredients in recipe
+        response = requests.post(f"{BASE_URL}/recipes/analyze", params={"apiKey": API_KEY, "language":"en", "includeNutrition": False} , headers={"Content-Type": "text/plain"}, data=recipe)
 
         analyzed_recipe = json.loads(response.text)
+        recipe_properties = analyzed_recipe.keys()
+        recipe_non_compliant_diets = [];
+        chosen_diets = (Diet.query.join(UserDiet).filter(user_id == g.user.id).all())
+
+        #prop => vegetarian, paleo, etc
+
+
+        for p in recipe_properties:
+            if analyzed_recipe[p] == False:
+                recipe_non_compliant_diets.append(p.lower())
+            else:
+                continue
+
+        print(f"The diet is not compliant with {recipe_non_compliant_diets} diets")
+
+
+
         
-        print("Status Code", response.status_code)
-        print(analyzed_recipe, type(analyzed_recipe))
-
-
 
 
                 
-    print(f"Validated:{form.validate_on_submit()}", f"Request Method: {request.method}")
-    return redirect(f'/users/{g.user.id}')
+        print(f"Validated:{form.validate_on_submit()}", f"Request Method: {request.method}")
+        return render_template("/users/result.html", chosen_diets=chosen_diets, recipe_non_compliant_diets=recipe_non_compliant_diets)
+
+
+
+        
+
+        
+    
+    
+
+
+
+
+
+
+
+
 
 # 2½ tablespoons kosher salt,
 # 1 tablespoon dry mustard,
@@ -272,9 +287,31 @@ def recipe():
 # ½ teaspoon freshly ground black pepper, 
 # 8 pounds baby back pork ribs (8 racks) or St. Louis-style spareribs (4 racks),
 # Low-salt chicken broth (optional),
-# 1½ cups store-bought or homemade barbecue sauce plus more
+# 1½ cups store-bought or homemade barbecue sauce
 
 # "instructions": "Bring a large pot of water to a boil and season generously with salt. Add the pasta to the water once boiling and cook until al dente. Reserve 2 cups of cooking water and drain the pasta. "
+
+# WATER:
+# {
+#     "vegetarian": true,
+#     "vegan": true,
+#     "glutenFree": true,
+#     "dairyFree": true,
+#     "veryHealthy": false,
+#     "cheap": true,
+#     "veryPopular": false,
+#     "sustainable": false,
+#     "weightWatcherSmartPoints": 0,
+#     "gaps", "": "no",
+#     "lowFodmap": true,
+#     "aggregateLikes": 0,
+#     "spoonacularScore": 42,
+#     "healthScore": 0,
+#     "pricePerServing": 0,
+#     "extendedIngredients"
+# }
+
+
 
 
 

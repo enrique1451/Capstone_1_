@@ -24,7 +24,7 @@
 </div>
 
 <div>
-    <form action='/users/recipe' method="POST">
+    <form action='/users/recipe/{{g.user.id}}' method="POST">
         <h4>Enter Recipe</h4>
         {% for field in form %}
             {{ field(placeholder=field.label.text, class="form-control") }}
