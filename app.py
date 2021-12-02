@@ -1,20 +1,14 @@
 import os, json, requests
-
 from flask import Flask, render_template, request, flash, redirect, session, g
 from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
 from forms import UserAddForm, LoginForm, RecipeForm, SelectDietsForm
-
-
 from models import db, connect_db, User, Diet, UserDiet
 from secrets import API_KEY
 
+
 CURR_USER_KEY = "user_id"
-
 app = Flask(__name__)
-
-
-
 
 
 # Get DB_URI from environ variable (useful for production/testing) or,
@@ -173,8 +167,6 @@ def select_diet():
             
     return render_template('users/dietSelection.html', form=form) 
     
-    
-
 
 @app.route('/logout')
 def logout():
@@ -184,10 +176,8 @@ def logout():
 
     return redirect("/")
 
-
 ##############################################################################
 # General user routes: 
-
 
 @app.route('/users/<int:user_id>', methods=['GET'])
 def user_home(user_id):
@@ -208,8 +198,7 @@ def user_home(user_id):
 @app.route('/users/recipe/<int:user_id>', methods=['POST'])
 def recipe(user_id):
 
-
-    """Receives text from the the client form"""
+    # Receives text from the the client form
     recipe = dict()
     form = RecipeForm(request.form)
 
@@ -217,21 +206,18 @@ def recipe(user_id):
         flash("Session Expired. Log In to your Account Again", "danger")
         return redirect("/login")
 
-
-    if form.validate_on_submit() and request.method == "POST":
-
     # Data posted from the recipe forms is received  
+    if form.validate_on_submit() and request.method == "POST":
+ 
         recipe["title"] = form.title.data 
         recipe["servings"] = form.servings.data
 
-
     #removes undesirable symbols from form to minimize API reading errors
-       
         ingredients = [i.lstrip() for i in (",".join([form.ingredients.data]).split(","))]
         recipe["ingredients"] = ingredients
         recipe["instructions"] = form.instructions.data
         
- 
+
     # Converts data type from dict into plain text, so it can be submitted to the API. 
         recipe = str(recipe)
 
@@ -244,9 +230,6 @@ def recipe(user_id):
         recipe_non_compliant_diets = [];
         chosen_diets = (Diet.query.join(UserDiet).filter(user_id == g.user.id).all())
 
-        #prop => vegetarian, paleo, etc
-
-
         for p in recipe_properties:
             if analyzed_recipe[p] == False:
                 recipe_non_compliant_diets.append(p.lower())
@@ -254,29 +237,9 @@ def recipe(user_id):
                 continue
 
         print(f"The diet is not compliant with {recipe_non_compliant_diets} diets")
-
-
-
-        
-
-
-                
         print(f"Validated:{form.validate_on_submit()}", f"Request Method: {request.method}")
+
         return render_template("/users/result.html", chosen_diets=chosen_diets, recipe_non_compliant_diets=recipe_non_compliant_diets)
-
-
-
-        
-
-        
-    
-    
-
-
-
-
-
-
 
 
 
@@ -310,10 +273,6 @@ def recipe(user_id):
 #     "pricePerServing": 0,
 #     "extendedIngredients"
 # }
-
-
-
-
 
 ##############################################################################
 

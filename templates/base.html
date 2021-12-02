@@ -33,7 +33,6 @@
       {% else %}
       <li>
         <a href="/home/{{ g.user.email }}">
-          <!-- <img src="{{ g.user.image_url }}" alt="{{ g.user.username }}"> -->
         </a>
       </li>
       <li><a href="/logout">Log out</a></li>
@@ -42,9 +41,6 @@
   </div>
 </nav>
 <div class="container">
-  <!-- {% for category, message in get_flashed_messages(with_categories=True) %}
-  <div class="alert alert-{{ category }}">{{ message }}</div>
-  {% endfor %} -->
 
   {% block content %}
   {% endblock %}

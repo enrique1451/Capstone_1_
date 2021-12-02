@@ -4,13 +4,14 @@
 {% block content %}
 
 <div id=diets-div>
-    <h2>User Selected Diets</h2>
+    <h2>Diet Violations</h2>
+        
     <ul class="list-group" id="chosen_diets">
         {% for dts in chosen_diets %}
             {% for p in recipe_non_compliant_diets %}
-                {% if dts.name != p %} 
+                {% if dts.name.lower() == p %} 
                 <li class="list-group-item">
-                    {{ p }}
+                    {{ dts.name }}
                 </li>
                 {% endif %}
             {% endfor %}
