@@ -92,7 +92,6 @@ def signup():
             db.session.commit()
 
         except IntegrityError:
-            flash("user already exists in our database. If password has been forgotten, please request a password reset", 'danger')
             return render_template('users/signup.html', form=form)
 
         do_login(user)
@@ -201,6 +200,7 @@ def recipe(user_id):
     # Receives text from the the client form
     recipe = dict()
     form = RecipeForm(request.form)
+    
 
     if not g.user:
         flash("Session Expired. Log In to your Account Again", "danger")
@@ -211,6 +211,7 @@ def recipe(user_id):
  
         recipe["title"] = form.title.data 
         recipe["servings"] = form.servings.data
+        print(recipe["title"], recipe["servings"])
 
     #removes undesirable symbols from form to minimize API reading errors
         ingredients = [i.lstrip() for i in (",".join([form.ingredients.data]).split(","))]
@@ -239,7 +240,7 @@ def recipe(user_id):
         print(f"The diet is not compliant with {recipe_non_compliant_diets} diets")
         print(f"Validated:{form.validate_on_submit()}", f"Request Method: {request.method}")
 
-        return render_template("/users/result.html", chosen_diets=chosen_diets, recipe_non_compliant_diets=recipe_non_compliant_diets)
+        return render_template("/users/result.html", chosen_diets=chosen_diets, recipe_non_compliant_diets=recipe_non_compliant_diets, user=g.user)
 
 
 

@@ -13,38 +13,68 @@
 
   <link rel="stylesheet"
         href="https://use.fontawesome.com/releases/v5.3.1/css/all.css">
-  <link rel="stylesheet" href="/static/stylesheets/style.css">
+  <link rel="stylesheet" href="/static/style.css">
   <link rel="shortcut icon" href="/static/favicon.ico">
 </head>
 
-<body class="{% block body_class %}{% endblock %}">
-<nav class="navbar navbar-expand">
-  <div class="container-fluid">
-    <div class="navbar-header">
-      <a href="/" class="navbar-brand">
-        <img src="/static/images/warbler-logo.png" alt="logo">
-        <span>Nutree</span>
-      </a>
-    </div>
-    <ul class="nav navbar-nav navbar-right">
-      {% if not g.user %}
-      <li><a href="/signup">Sign up</a></li>
-      <li><a href="/login">Log in</a></li>
-      {% else %}
-      <li>
-        <a href="/home/{{ g.user.email }}">
-        </a>
-      </li>
-      <li><a href="/logout">Log out</a></li>
-      {% endif %}
-    </ul>
-  </div>
-</nav>
-<div class="container">
+<body>
+  <main>
+    <nav class="navbar navbar-expand navbar-light" style="background-color: #28a7463b; ">
+      <div class="container-fluid">
+        <div class="navbar-header">
+          <a href="/" class="navbar-brand">
+            <!-- <img src="/static/images/warbler-logo.png" alt="logo"> -->
+            <span>Nutree</span>
+          </a>
+        </div>
+        <ul class="nav navbar-nav navbar-left">
+          {% if not g.user %}
+            {% else %}
+              <h3 style="margin-bottom: 2px;">@{{ user.username }}</h3>
+          {% endif %}
+        </ul>
+          
 
-  {% block content %}
-  {% endblock %}
+        <ul class="nav navbar-nav navbar-right">
+          {% if not g.user %}
+          <li><a href="/signup">Sign up</a></li>
+          <li><a href="/login">Log in</a></li>
 
-</div>
-</body>
+          {% else %}
+            <li><a href="/logout">Log out</a></li>
+          {% endif %}
+        </ul>
+      </div>
+    </nav>
+    
+    {% if request.endpoint == "login"%}
+    
+        {% block login %}
+        {% endblock %}
+
+    
+
+    {% else %}
+    <main class="d-flex align-content-around">
+      <nav class="d-flex flex-column flex-shrink-0 p-3" style="width: 250px; background-color: #a7852862;">
+        <span class="fs-3"> {{user.username}}'s Diets</span>
+        <hr>
+        <ul class = "nav nav-pills flex-column mb-auto">
+
+          {% for dts in chosen_diets %}
+          <li class="nav-item">
+              {{ dts.name }}
+          </li>
+              {% endfor %}
+        </ul>
+          
+      </nav>
+
+      <div class="container mt-5 px-lg-4" ">
+        {% block content %}
+        {% endblock %}
+      </div>
+    </main>
+    {% endif %}
+  </body>
 </html>
