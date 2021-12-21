@@ -12,16 +12,16 @@ class UserAddForm(FlaskForm):
     password = PasswordField('Password', validators=[Length(min=6)])
     username = StringField('Username', validators=[DataRequired()])
 
-class SelectDietsForm(FlaskForm):
-    """Form for selecting diets for new or existing logged in user"""
-    diets = QuerySelectMultipleField(query_factory = lambda:Diet.query.all())
+# class SelectDietsForm(FlaskForm):
+#     """Form for selecting diets for new or existing logged in user"""
+#     diets = QuerySelectMultipleField(query_factory = lambda:Diet.query.all())
 
 
 
 class LoginForm(FlaskForm):
     """Login form."""
 
-    email = StringField('email', validators=[DataRequired(), Email()])
+    email = StringField('E-mail', validators=[DataRequired(), Email()])
     password = PasswordField('Password', validators=[Length(min=6)])
 
 
@@ -29,7 +29,7 @@ class RecipeForm(FlaskForm):
     """Form for entering recipe to be analyzed"""
     title = StringField('Title', validators=[DataRequired()])
     servings = IntegerField('Servings', validators=[DataRequired()]) 
-    ingredients = TextAreaField('Ingredients', validators=[DataRequired()])
-    instructions = TextAreaField('Instructions', validators=[Optional(strip_whitespace=True)])
+    ingredients = TextAreaField('Ingredients (Enter valid quantities (lbs, tsp, etc) and use a " , " after entering each ingredient.', validators=[DataRequired()])
+    instructions = TextAreaField('Instructions (This field can be left empty if no cooking instructions are available)', validators=[Optional(strip_whitespace=True)])
 
 

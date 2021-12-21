@@ -23,8 +23,7 @@
       <div class="container-fluid">
         <div class="navbar-header">
           <a href="/" class="navbar-brand">
-            <!-- <img src="/static/images/warbler-logo.png" alt="logo"> -->
-            <span>Nutree</span>
+            <span>NuTree</span>
           </a>
         </div>
         <ul class="nav navbar-nav navbar-left">
@@ -37,11 +36,11 @@
 
         <ul class="nav navbar-nav navbar-right">
           {% if not g.user %}
-          <li><a href="/signup">Sign up</a></li>
-          <li><a href="/login">Log in</a></li>
+          <li><a class="btn btn-primary m-1" href="/signup">Sign up</a></li>
+          <li><a class="btn btn-primary m-1" href="/login">Log in</a></li>
 
           {% else %}
-            <li><a href="/logout">Log out</a></li>
+            <li><a class="btn btn-primary m-1" href="/logout">Log out</a></li>
           {% endif %}
         </ul>
       </div>
@@ -52,6 +51,9 @@
         {% block login %}
         {% endblock %}
 
+    {% elif request.endpoint == "signup" %}   
+        {% block signup %} 
+        {% endblock %}
     
 
     {% else %}
@@ -60,16 +62,13 @@
         <span class="fs-3"> {{user.username}}'s Diets</span>
         <hr>
         <ul class = "nav nav-pills flex-column mb-auto">
-
           {% for dts in chosen_diets %}
           <li class="nav-item">
               {{ dts.name }}
           </li>
               {% endfor %}
         </ul>
-          
       </nav>
-
       <div class="container mt-5 px-lg-4" ">
         {% block content %}
         {% endblock %}

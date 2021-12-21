@@ -2,7 +2,7 @@ import os, json, requests
 from flask import Flask, render_template, request, flash, redirect, session, g
 from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
-from forms import UserAddForm, LoginForm, RecipeForm, SelectDietsForm
+from forms import UserAddForm, LoginForm, RecipeForm
 from models import db, connect_db, User, Diet, UserDiet
 from secrets import API_KEY
 
@@ -18,7 +18,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = (
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ECHO'] = False
-app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = True
+app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', "i'll never tell")
 toolbar = DebugToolbarExtension(app)
 
@@ -141,19 +141,20 @@ def delete_user():
     
 
 
-@app.route('/users/dietSelection', methods=["GET", "POST"]) 
-def select_diet():
+@app.route('/users/dietSelection/<int:user_id>', methods=["GET", "POST"]) 
+def select_diet(user_id):
     """ Diets presentation and selection form for new users"""
     
-    # available_diets = Diet.query.all()
-    form = SelectDietsForm()
+    diets = Diet.query.all()
+    # form = SelectDietsForm()
     user = g.user
+   
+    
 
-    if form.validate_on_submit() and request.method == "POST":
 
+    if request.method == "POST":
             try:
-                print(form.diets.data)
-                for diet in form.diets.data:
+                for diet in diets:
                                      
                     userdiet = UserDiet.linkUserDiet(
                         userid = user.id, 
@@ -163,8 +164,14 @@ def select_diet():
 
             except IntegrityError:
                 db.session.rollback()
-            
-    return render_template('users/dietSelection.html', form=form) 
+
+                print(user.id)
+
+    
+    
+    chosen_diets = (Diet.query.join(UserDiet).filter(user_id == user.id).all())
+   
+    return render_template('users/dietSelection.html', diets=diets, user=user, chosen_diets=chosen_diets ) 
     
 
 @app.route('/logout')

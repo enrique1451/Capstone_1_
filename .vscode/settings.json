@@ -1,10 +1,9 @@
 {
   "files.exclude": {
     "venv": true,
-    ".vscode": true,
     "__pycache__": true,
     "spoonacular API Response.txt": true,
     "data.txt": true,
-    "requirements.txt": true
+    "templates/users/login.html": true
   }
 }

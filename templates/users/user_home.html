@@ -4,10 +4,12 @@
 
 
 <form action='/users/recipe/{{g.user.id}}' method="POST">
-    <h2>Enter Recipe</h2>
+    <h2>Enter Recipe</h2><br>
+    <h6>Please make sure that ingredients have proper quantities (lbs, tsp, etc) and a "," after each ingredient. </h6>
     {% for field in form %}
         {{ field(placeholder=field.label.text, class="form-control") }}
     {% endfor %}
+    <br>
     <button class="btn btn-primary btn-lg btn-block">Analyze</button>
 
 </form>
