@@ -67,7 +67,9 @@
               {{ dts.name }}
           </li>
               {% endfor %}
+              <a class="btn btn-primary m-1" href="/users/dietSelection/{{user.id}}">Edit Account's Diets</a>
         </ul>
+        
       </nav>
       <div class="container mt-5 px-lg-4" ">
         {% block content %}
