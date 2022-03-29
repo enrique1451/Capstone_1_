@@ -1,24 +1,29 @@
 {% extends 'base.html' %}
 
 
+
+
 {% block content %}
 <form action='/users/dietSelection' method="POST">
-    <select class="form-select" size="10" multiple aria-label="Diet">
-        <option class="fs-4 fw-light" id="diet-title" selected>SELECT DIETS</option>
-        <br>
-            {% for d in diets %}
-            <option class="text-wrap">
-                {{ d.name }} : {{d.description}}
-            </option>
-               
+    <div class="d-flex gap-5 justify-content-center">
+        <div class="list-group mx-0">
+                  {% for d in diets %}
+
+                <label class="list-group-item d-flex gap-2">
+                    <input class="form-check-input flex-shrink-0" type="checkbox" value="" unchecked>
+                    <span>
+                    {{ d.name }}
+                        <small class="d-block text-muted">{{ d.description }}</small>
+                    </span>
+                </label>
+      
             {% endfor %}
 
-        </select>
         <button class="btn btn-primary btn-lg btn-block" >Analyze</button>
+        </div>
 </form>
 
-
-   
-
-
 {% endblock %}
+
+
+
