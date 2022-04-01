@@ -1,3 +1,8 @@
+{% from 'bootstrap5/form.html' import render_form %}
+{% from 'bootstrap5/utils.html' import render_messages %}
+
+
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -16,9 +21,12 @@
 
   <link rel="stylesheet" href="/static/style.css">
   <link rel="shortcut icon" href="/static/favicon.ico">
+
+  {{ bootstrap.load_css() }}
 </head>
 
 <body>
+  {{ bootstrap.load_js() }}
   <main>
     <nav class="navbar navbar-expand navbar-light" style="background-color: #28a7463b; ">
       <div class="container-fluid">
@@ -69,6 +77,7 @@
           </li>
               {% endfor %}
               <a class="btn btn-primary m-1" href="/users/dietSelection/{{user.id}}">Edit Account's Diets</a>
+              <a class="btn btn-outline-danger m-1" href="/delete_user">Delete Account</a>
         </ul>
         
       </nav>

@@ -25,7 +25,7 @@ class User(db.Model):
 
     username = db.Column(db.Text, nullable=False, unique=True,)
 
-    userdiet = db.relationship("UserDiet")
+    userdiet = db.relationship("UserDiet", cascade="all, delete", passive_deletes=True)
 
 
 
@@ -100,7 +100,7 @@ class UserDiet(db.Model):
 
     __tablename__ = "userdiet" 
     
-    user_id = db.Column("user_id", db.ForeignKey("user.id"), primary_key=True)
+    user_id = db.Column("user_id", db.ForeignKey("user.id", ondelete="CASCADE"), primary_key=True)
     
     diet_id = db.Column("diet_id", db.ForeignKey("diet.id"), primary_key=True)
 

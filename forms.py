@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, TextAreaField, IntegerField, FieldList
+from wtforms import StringField, PasswordField, TextAreaField, IntegerField, FieldList, BooleanField
 from wtforms.validators import InputRequired, Length, Optional, Email, EqualTo
 from models import Diet
 
@@ -26,5 +26,9 @@ class RecipeForm(FlaskForm):
     title = StringField('Title', validators=[InputRequired("Recipe Title Required")])
     servings = IntegerField('Servings', validators=[InputRequired("Servings required")]) 
     ingredients = TextAreaField('Ingredients (Enter valid quantities (lbs, tsp, etc) and use a "," after entering each ingredient.', validators=[InputRequired()])
+
+
+class UserSelectedDiets(FlaskForm):
+    checkbox = BooleanField(label="diet", default="unchecked")
 
 
